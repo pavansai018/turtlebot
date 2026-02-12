@@ -195,6 +195,19 @@
       <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
     </inertial>
   </link>
+      <gazebo reference="${namespace}imu_link">
+        <sensor name="imu" type="imu">
+            <always_on>1</always_on>
+            <update_rate>50</update_rate>
+            <visualize>true</visualize>
+            <topic>imu/data</topic>
+            <enable_metrics>true</enable_metrics>
+            <ignition_frame_id>${namespace}imu_link</ignition_frame_id>
+        </sensor>
+    </gazebo>
+      <gazebo>
+        <plugin filename="libignition-gazebo-imu-system" name="ignition::gazebo::systems::Imu"/>
+    </gazebo>
 <gazebo>
         <plugin name="ignition::gazebo::systems::DiffDrive" filename="ignition-gazebo-diff-drive-system"> 
             <num_wheel_pairs>1</num_wheel_pairs>
