@@ -80,52 +80,6 @@ def generate_launch_description():
         # 'robot_description': robot_desc
     }
 
-    joint_state_publisher_gui = Node(
-        package='joint_state_publisher_gui',
-        executable='joint_state_publisher_gui',
-        name='joint_state_publisher_gui',
-        parameters=[jsp_gui_params],
-        # remappings=[('/joint_states', '/gui_joint_states')]
-    )
-
-    spawner_jsb = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_state_broadcaster', '--controller-manager', '/controller_manager'],
-        output='screen',
-    )   
-
-    spawner_jtc = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_trajectory_controller', '--controller-manager', '/controller_manager'],
-        output='screen',
-    )
-
-    spawner_jgpc = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_group_position_controller', '--controller-manager', '/controller_manager'],
-        output='screen',
-    )
-    jsp_to_traj_node = Node(
-        package='spiderbytes',
-        executable='jsp_to_traj',
-        output='screen',
-    )
-    # spawn_controllers_after_entity = RegisterEventHandler(
-    #     OnProcessExit(
-    #         target_action=gz_spawn_entity,
-    #         on_exit=[spawner_jsb, spawner_jtc],
-    #     )
-    # )
-    wait_for_cm = Node(
-        package='spiderbytes',
-        executable='wait_for_controller_manager',
-        output='screen'
-    )
-
-
     # Create the launch description and populate
     ld = LaunchDescription()
 
