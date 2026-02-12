@@ -3,8 +3,9 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, LaunchConfiguration
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.event_handlers import OnProcessExit
 
@@ -79,6 +80,23 @@ def generate_launch_description():
         'use_sim_time': use_sim_time,
         # 'robot_description': robot_desc
     }
+    slam_toolbox = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('slam_toolbox'), 'launch', 'online_async_launch.py'
+            ])
+
+        ]),
+        launch_arguments={
+            'slam_params_file': PathJoinSubstitution(
+                [
+                    FindPackageShare('turtlebot'), 'config', 'mapper_params_online_async.yaml',
+                ]
+            ),
+            'use_sim_time': 'true',
+
+        }.items()
+    )
 
     # Create the launch description and populate
     ld = LaunchDescription()
@@ -91,5 +109,5 @@ def generate_launch_description():
     ld.add_action(gz_ros2_bridge)
     # Launch Robot State Publisher
     ld.add_action(start_robot_state_publisher_cmd)
-
+    ld.add_action(slam_toolbox)
     return ld
