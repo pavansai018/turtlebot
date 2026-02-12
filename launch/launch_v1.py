@@ -59,7 +59,7 @@ def generate_launch_description():
             "/odometry/wheels@nav_msgs/msg/Odometry@ignition.msgs.Odometry",
             "/tf@tf2_msgs/msg/TFMessage[ignition.msgs.Pose_V",
             '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
-            # '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+            '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
             # '/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU',
             # '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
         ],
