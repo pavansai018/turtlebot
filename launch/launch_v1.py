@@ -7,7 +7,8 @@ from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitut
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
-from launch.event_handlers import OnProcessExit
+from launch.event_handlers import OnProcessExit, OnProcessStart
+from launch.actions import TimerAction
 
 
 def generate_launch_description():
@@ -48,26 +49,33 @@ def generate_launch_description():
             "-name", "turtlebot_burger",
             "-allow_renaming", "true",
             "-z", "0.5",
-        ]
+        ],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
     
     gz_ros2_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist",
-            "/clock@rosgraph_msgs/msg/Clock[ignition.msgs.Clock",
-            "/odom@nav_msgs/msg/Odometry@ignition.msgs.Odometry",
-            "/tf@tf2_msgs/msg/TFMessage[ignition.msgs.Pose_V",
+            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+            "/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
             '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
-            '/scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
             '/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU',
             # '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
         ],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     # Robot state publisher
-    params = {'use_sim_time': use_sim_time, 'robot_description': robot_desc}
+    params = {
+        'use_sim_time': use_sim_time, 
+        'robot_description': robot_desc, 
+        'publish_frequency': 30.0, 
+        'ignore_timestamp': False,
+        }
     start_robot_state_publisher_cmd = Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -75,11 +83,7 @@ def generate_launch_description():
             output='screen',
             parameters=[params],
             arguments=[])
-    # joint_state_publisher_gui: publishes /joint_states with sliders
-    jsp_gui_params = {
-        'use_sim_time': use_sim_time,
-        # 'robot_description': robot_desc
-    }
+ 
     slam_toolbox = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -98,6 +102,23 @@ def generate_launch_description():
         }.items()
     )
 
+
+    rviz_node = Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}],
+            arguments=['-d', os.path.join(
+                        get_package_share_directory('turtlebot'), 'config', 'turtlebot.rviz')]
+        )
+
+    joint_state_publisher_node = Node(
+        package='joint_state_publisher',
+        executable='joint_state_publisher',
+        name='joint_state_publisher',
+        parameters=[{'use_sim_time': use_sim_time}]
+    )
     # Create the launch description and populate
     ld = LaunchDescription()
 
@@ -107,7 +128,9 @@ def generate_launch_description():
     ld.add_action(gz_sim)
     ld.add_action(gz_spawn_entity)
     ld.add_action(gz_ros2_bridge)
+    ld.add_action(joint_state_publisher_node)
     # Launch Robot State Publisher
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(slam_toolbox)
+    ld.add_action(rviz_node)
     return ld

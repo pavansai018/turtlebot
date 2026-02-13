@@ -3,9 +3,6 @@
   xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- <xacro:include filename="$(find turtlebot)/urdf/common_properties.urdf"/> -->
 
-  <xacro:arg name="namespace" default=""/>
-  <xacro:property name="namespace" value="$(arg namespace)"/>
-
   <!-- Init colour -->
   <material name="black">
       <color rgba="0.0 0.0 0.0 1.0"/>
@@ -47,15 +44,9 @@
     <color rgba="1.0 1.0 1.0 1.0"/>
   </material>
 
-  <link name="${namespace}base_footprint"/>
 
-  <joint name="${namespace}base_joint" type="fixed">
-    <parent link="${namespace}base_footprint"/>
-    <child link="${namespace}base_link"/>
-    <origin xyz="0.0 0.0 0.010" rpy="0 0 0"/>
-  </joint>
 
-  <link name="${namespace}base_link">
+  <link name="base_link">
     <visual>
       <origin xyz="-0.032 0 0.0" rpy="0 0 0"/>
       <geometry>
@@ -78,14 +69,14 @@
     </inertial>
   </link>
 
-  <joint name="${namespace}wheel_left_joint" type="continuous">
-    <parent link="${namespace}base_link"/>
-    <child link="${namespace}wheel_left_link"/>
+  <joint name="wheel_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_left_link"/>
     <origin xyz="0.0 0.08 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
-  <link name="${namespace}wheel_left_link">
+  <link name="wheel_left_link">
     <visual>
       <origin xyz="0 0 0" rpy="1.57 0 0"/>
       <geometry>
@@ -108,14 +99,14 @@
     </inertial>
   </link>
 
-  <joint name="${namespace}wheel_right_joint" type="continuous">
-    <parent link="${namespace}base_link"/>
-    <child link="${namespace}wheel_right_link"/>
+  <joint name="wheel_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_right_link"/>
     <origin xyz="0.0 -0.080 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
-  <link name="${namespace}wheel_right_link">
+  <link name="wheel_right_link">
     <visual>
       <origin xyz="0 0 0" rpy="1.57 0 0"/>
       <geometry>
@@ -138,13 +129,13 @@
     </inertial>
   </link>
 
-  <joint name="${namespace}caster_back_joint" type="fixed">
-    <parent link="${namespace}base_link"/>
-    <child link="${namespace}caster_back_link"/>
+  <joint name="caster_back_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_back_link"/>
     <origin xyz="-0.081 0 -0.004" rpy="-1.57 0 0"/>
   </joint>
 
-  <link name="${namespace}caster_back_link">
+  <link name="caster_back_link">
     <collision>
       <origin xyz="0 0.001 0" rpy="0 0 0"/>
       <geometry>
@@ -159,21 +150,21 @@
     </inertial>
   </link>
 
-  <joint name="${namespace}imu_joint" type="fixed">
-    <parent link="${namespace}base_link"/>
-    <child link="${namespace}imu_link"/>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
     <origin xyz="-0.032 0 0.068" rpy="0 0 0"/>
   </joint>
 
-  <link name="${namespace}imu_link"/>
+  <link name="imu_link"/>
 
-  <joint name="${namespace}scan_joint" type="fixed">
-    <parent link="${namespace}base_link"/>
-    <child link="${namespace}base_scan"/>
+  <joint name="scan_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_scan"/>
     <origin xyz="-0.032 0 0.172" rpy="0 0 0"/>
   </joint>
 
-  <link name="${namespace}base_scan">
+  <link name="base_scan">
     <visual>
       <origin xyz="0 0 0.0" rpy="0 0 0"/>
       <geometry>
@@ -195,14 +186,14 @@
       <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001" />
     </inertial>
   </link>
-      <gazebo reference="${namespace}imu_link">
+      <gazebo reference="imu_link">
         <sensor name="imu" type="imu">
             <always_on>1</always_on>
             <update_rate>50</update_rate>
             <visualize>true</visualize>
             <topic>imu/data</topic>
             <enable_metrics>true</enable_metrics>
-            <ignition_frame_id>${namespace}imu_link</ignition_frame_id>
+            <ignition_frame_id>imu_link</ignition_frame_id>
         </sensor>
     </gazebo>
       <gazebo>
@@ -213,8 +204,8 @@
             <num_wheel_pairs>1</num_wheel_pairs>
             <!-- Wheel Information -->
             
-            <left_joint>${namespace}wheel_left_joint</left_joint>
-            <right_joint>${namespace}wheel_right_joint</right_joint>
+            <left_joint>wheel_left_joint</left_joint>
+            <right_joint>wheel_right_joint</right_joint>
             
             <wheel_separation>0.16</wheel_separation>
             <wheel_radius>0.033</wheel_radius>
@@ -231,7 +222,7 @@
             <min_angular_velocity>-4.0</min_angular_velocity>
             <!-- Output -->
             <frame_id>odom</frame_id>
-            <child_frame_id>${namespace}base_link</child_frame_id>
+            <child_frame_id>base_link</child_frame_id>
 
             <!-- Topics -->
             <topic>/cmd_vel</topic>
@@ -245,28 +236,28 @@
         </plugin>
     </gazebo>
 
-    <gazebo reference="${namespace}wheel_right_link">
+    <gazebo reference="wheel_right_link">
         <mu1 value="200.0" />
         <mu2 value="200.0" />
         <kp  value="1000000.0" />
         <kd  value="1.0" />
         <minDepth>0.005</minDepth>
     </gazebo>
-    <gazebo reference="${namespace}wheel_left_link">
+    <gazebo reference="wheel_left_link">
         <mu1 value="200.0" />
         <mu2 value="200.0" />
         <kp  value="1000000.0" />
         <kd  value="1.0" />
         <minDepth>0.005</minDepth>
     </gazebo>
-    <gazebo reference="${namespace}base_scan">
+    <gazebo reference="base_scan">
         <sensor name='gpu_lidar' type='gpu_lidar'>
             <pose>0 0 0 0 0 0</pose>
             <topic>scan</topic>
             <!-- <ignition_frame_id>lidar_link</ignition_frame_id> -->
-            <frame_name>${namespace}base_scan</frame_name>
-            <gz_frame_id>${namespace}base_scan</gz_frame_id>
-            <update_rate>2</update_rate>
+            <frame_name>base_scan</frame_name>
+            <gz_frame_id>base_scan</gz_frame_id>
+            <update_rate>30</update_rate>
             <lidar>
                 <scan>
                 <horizontal>
