@@ -57,7 +57,7 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
+            "/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist",
             "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
             "/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
@@ -74,7 +74,7 @@ def generate_launch_description():
         'use_sim_time': use_sim_time, 
         'robot_description': robot_desc, 
         'publish_frequency': 30.0, 
-        'ignore_timestamp': False,
+        'ignore_timestamp': True,
         }
     start_robot_state_publisher_cmd = Node(
             package='robot_state_publisher',
@@ -82,6 +82,7 @@ def generate_launch_description():
             name='robot_state_publisher',
             output='screen',
             parameters=[params],
+            remappings=[('/cmd_vel_nav', '/cmd_vel')],
             arguments=[])
  
     slam_toolbox = IncludeLaunchDescription(
@@ -101,6 +102,25 @@ def generate_launch_description():
 
         }.items()
     )
+    nav2 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('nav2_bringup'),
+                'launch',
+                'navigation_launch.py'
+            ])
+        ),
+        launch_arguments={
+            'use_sim_time': 'true',
+            'slam': 'True',
+            'map_subscribe_transient_local': 'true',
+            'params_file': PathJoinSubstitution([
+                    FindPackageShare('turtlebot'),
+                    'config',
+                    'nav2_params.yaml'
+        ]),
+        }.items()
+    )
 
 
     rviz_node = Node(
@@ -110,7 +130,7 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}],
             arguments=['-d', os.path.join(
-                        get_package_share_directory('turtlebot'), 'config', 'turtlebot.rviz')]
+                        get_package_share_directory('turtlebot'), 'config', 'turtlebot_v2.rviz')]
         )
 
     joint_state_publisher_node = Node(
@@ -128,9 +148,10 @@ def generate_launch_description():
     ld.add_action(gz_sim)
     ld.add_action(gz_spawn_entity)
     ld.add_action(gz_ros2_bridge)
-    ld.add_action(joint_state_publisher_node)
+    # ld.add_action(joint_state_publisher_node)
     # Launch Robot State Publisher
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(slam_toolbox)
     ld.add_action(rviz_node)
+    ld.add_action(nav2)
     return ld
