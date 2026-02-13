@@ -1,7 +1,7 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -16,7 +16,12 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     urdf = os.path.join(get_package_share_directory(
         'turtlebot'), 'urdf', 'turtlebot3_burger.urdf')
-
+    
+    local_model_path = os.path.join(get_package_share_directory('turtlebot'), 'models')
+    set_gazebo_model_path = SetEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=[local_model_path]
+    )
     robot_desc = ParameterValue(Command(
         [
             'xacro ', 
@@ -30,14 +35,14 @@ def generate_launch_description():
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true')
-    # world_file = os.path.join(get_package_share_directory('spiderbytes'), 'world', 'black_circle.sdf')
+    world_file = os.path.join(get_package_share_directory('turtlebot'), 'worlds', 'circular_maze.sdf')
 
     # Include the gz sim launch file  
     gz_sim_share = get_package_share_directory("ros_gz_sim")
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(gz_sim_share, "launch", "gz_sim.launch.py")),
         launch_arguments={
-            "gz_args" :  '-r empty.sdf' #f'-r {world_file}' #'-r empty.sdf'
+            "gz_args" :  f'-r {world_file}' #'-r empty.sdf'
         }.items()
     )
     # Spawn Rover Robot
@@ -142,6 +147,7 @@ def generate_launch_description():
     # Create the launch description and populate
     ld = LaunchDescription()
 
+    ld.add_action(set_gazebo_model_path)
     # Declare the launch options
     ld.add_action(declare_use_sim_time_cmd)
     # Launch Gazebo

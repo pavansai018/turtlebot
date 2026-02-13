@@ -18,6 +18,12 @@ setup(
         (os.path.join('share', package_name, 'worlds'), glob(os.path.join('worlds', '*.*'))),
         (os.path.join('share', package_name, 'nodes'), glob(os.path.join('nodes', '*.*'))),
         (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.*'))),
+        (os.path.join('share', package_name, 'models'), glob(os.path.join('models', '*.*'))),
+        (os.path.join('share', package_name, 'models/circular_maze'), glob(os.path.join('models/circular_maze', '*.*'))),
+        (os.path.join('share', package_name, 'models/circular_maze/meshes'), glob(os.path.join('models/circular_maze/meshes', '*.*'))),
+
+
+
     ],
     install_requires=['setuptools'],
     zip_safe=True,

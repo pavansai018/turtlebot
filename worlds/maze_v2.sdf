@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="solvable_high_coverage_maze">
+
+    <physics type="ode">
+      <max_step_size>0.004</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <light name="sun" type="directional">
+      <pose>0 0 20 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <direction>-0.5 0.2 -1</direction>
+    </light>
+
+    <!-- Ground -->
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="c">
+          <geometry><box><size>50 50 0.1</size></box></geometry>
+        </collision>
+        <visual name="v">
+        <material>
+            <ambient>0.9 0.9 0.9 1</ambient>
+            <diffuse>0.95 0.95 0.95 1</diffuse>
+          </material>
+          <geometry><box><size>50 50 0.1</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- MAZE -->
+    <model name="maze">
+      <static>true</static>
+      <link name="link">
+
+        <!-- OUTER WALLS -->
+        <!-- West wall with entry gap at bottom -->
+        <collision name="west_top">
+          <pose>-20 5 1.5 0 0 0</pose>
+          <geometry><box><size>0.5 30 3</size></box></geometry>
+        </collision>
+        <visual name="west_top_v">
+          <pose>-20 5 1.5 0 0 0</pose>
+          <geometry><box><size>0.5 30 3</size></box></geometry>
+        </visual>
+
+        <!-- East wall with exit gap at top -->
+        <collision name="east_bottom">
+          <pose>20 -5 1.5 0 0 0</pose>
+          <geometry><box><size>0.5 30 3</size></box></geometry>
+        </collision>
+        <visual name="east_bottom_v">
+          <pose>20 -5 1.5 0 0 0</pose>
+          <geometry><box><size>0.5 30 3</size></box></geometry>
+        </visual>
+
+        <!-- North -->
+        <collision name="north">
+          <pose>0 20 1.5 0 0 0</pose>
+          <geometry><box><size>40 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="north_v">
+          <pose>0 20 1.5 0 0 0</pose>
+          <geometry><box><size>40 0.5 3</size></box></geometry>
+        </visual>
+
+        <!-- South -->
+        <collision name="south">
+          <pose>0 -20 1.5 0 0 0</pose>
+          <geometry><box><size>40 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="south_v">
+          <pose>0 -20 1.5 0 0 0</pose>
+          <geometry><box><size>40 0.5 3</size></box></geometry>
+        </visual>
+
+        <!-- SERPENTINE PASSAGE WALLS -->
+        <!-- Horizontal strips alternating open sides -->
+
+        <!-- Row 1 -->
+        <collision name="h1">
+          <pose>0 -15 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="h1v">
+          <pose>0 -15 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </visual>
+
+        <!-- Row 2 -->
+        <collision name="h2">
+          <pose>0 -10 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="h2v">
+          <pose>0 -10 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </visual>
+
+        <!-- Row 3 -->
+        <collision name="h3">
+          <pose>0 -5 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="h3v">
+          <pose>0 -5 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </visual>
+
+        <!-- Row 4 -->
+        <collision name="h4">
+          <pose>0 0 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="h4v">
+          <pose>0 0 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </visual>
+
+        <!-- Row 5 -->
+        <collision name="h5">
+          <pose>0 5 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="h5v">
+          <pose>0 5 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </visual>
+
+        <!-- Row 6 -->
+        <collision name="h6">
+          <pose>0 10 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </collision>
+        <visual name="h6v">
+          <pose>0 10 1.5 0 0 0</pose>
+          <geometry><box><size>35 0.5 3</size></box></geometry>
+        </visual>
+
+      </link>
+    </model>
+
+  </world>
+</sdf>
