@@ -151,14 +151,7 @@ def generate_launch_description():
         name='joint_state_publisher',
         parameters=[{'use_sim_time': use_sim_time}]
     )
-    odom_to_tf_node = Node(
-        package='turtlebot',
-        executable='odom_to_tf',
-        name='odom_to_tf',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}],
 
-    )
     # Create the launch description and populate
     ld = LaunchDescription()
 
@@ -175,5 +168,4 @@ def generate_launch_description():
     ld.add_action(slam_toolbox)
     ld.add_action(rviz_node)
     # ld.add_action(nav2)
-    # ld.add_action(odom_to_tf_node)
     return ld
