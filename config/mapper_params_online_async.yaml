@@ -16,6 +16,9 @@ slam_toolbox:
     scan_topic: /scan
     use_map_saver: true
     mode: mapping #localization
+    map_file_name: "simple_maze_map"
+    map_file_directory: "src/turtlebot/maps"  # <-- make sure this folder exists!
+    map_update_interval: 5.0  # save every 60 seconds (or 5.0 if you want frequent updates)
 
     # if you'd like to immediately start continuing a map at a given pose
     # or at the dock, but they are mutually exclusive, if pose is given
@@ -40,14 +43,14 @@ slam_toolbox:
     # General Parameters
     use_scan_matching: true
     use_scan_barycenter: true
-    minimum_travel_distance: 0.5
-    minimum_travel_heading: 0.5
+    minimum_travel_distance: 0.05
+    minimum_travel_heading: 0.05
     scan_buffer_size: 10
     scan_buffer_maximum_scan_distance: 10.0
     link_match_minimum_response_fine: 0.1  
     link_scan_maximum_distance: 1.5
     loop_search_maximum_distance: 3.0
-    do_loop_closing: true 
+    do_loop_closing: false 
     loop_match_minimum_chain_size: 10           
     loop_match_maximum_variance_coarse: 3.0  
     loop_match_minimum_response_coarse: 0.35    

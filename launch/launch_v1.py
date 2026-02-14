@@ -24,9 +24,10 @@ def generate_launch_description():
     )
     robot_desc = ParameterValue(Command(
         [
-            'xacro ', 
+            # 'xacro ', 
+            'cat ',
             urdf, 
-            ' ', 
+            # ' ', 
             # 'ros2_control_yaml:=', control_yaml_file
             ]
         ),value_type=str)
@@ -53,7 +54,9 @@ def generate_launch_description():
             "-topic", "/robot_description",
             "-name", "turtlebot_burger",
             "-allow_renaming", "true",
-            "-z", "0.5",
+            "-x", "0.0",
+            "-y", "0.0",
+            "-z", "0.01",
         ],
         parameters=[{'use_sim_time': use_sim_time}],
     )
@@ -62,13 +65,17 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist",
+                # ROS -> GZ
+            "/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist",
+
+            # GZ -> ROS
             "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-            "/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry",
+            "/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry",
             "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
-            '/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model',
-            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
-            '/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU',
+            # "/tf_static@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
+            "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
+            "/imu/data@sensor_msgs/msg/Imu[gz.msgs.IMU",
             # '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
         ],
         parameters=[{'use_sim_time': use_sim_time}],
@@ -144,6 +151,14 @@ def generate_launch_description():
         name='joint_state_publisher',
         parameters=[{'use_sim_time': use_sim_time}]
     )
+    odom_to_tf_node = Node(
+        package='turtlebot',
+        executable='odom_to_tf',
+        name='odom_to_tf',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+
+    )
     # Create the launch description and populate
     ld = LaunchDescription()
 
@@ -159,5 +174,6 @@ def generate_launch_description():
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(slam_toolbox)
     ld.add_action(rviz_node)
-    ld.add_action(nav2)
+    # ld.add_action(nav2)
+    # ld.add_action(odom_to_tf_node)
     return ld

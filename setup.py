@@ -19,12 +19,15 @@ setup(
         (os.path.join('share', package_name, 'nodes'), glob(os.path.join('nodes', '*.*'))),
         (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.*'))),
         (os.path.join('share', package_name, 'models'), glob(os.path.join('models', '*.*'))),
+        (os.path.join('share', package_name, 'maps'), glob(os.path.join('maps', '*.*'))),
         (os.path.join('share', package_name, 'models/circular_maze'), glob(os.path.join('models/circular_maze', '*.*'))),
         (os.path.join('share', package_name, 'models/circular_maze/meshes'), glob(os.path.join('models/circular_maze/meshes', '*.*'))),
         (os.path.join('share', package_name, 'models/square_maze'), glob(os.path.join('models/square_maze', '*.*'))),
         (os.path.join('share', package_name, 'models/square_maze/meshes'), glob(os.path.join('models/square_maze/meshes', '*.*'))),
         (os.path.join('share', package_name, 'models/simple_maze'), glob(os.path.join('models/simple_maze', '*.*'))),
         (os.path.join('share', package_name, 'models/simple_maze/meshes'), glob(os.path.join('models/simple_maze/meshes', '*.*'))),
+        (os.path.join('share', package_name, 'models/turtlebot'), glob(os.path.join('models/turtlebot', '*.*'))),
+        (os.path.join('share', package_name, 'models/turtlebot/meshes'), glob(os.path.join('models/turtlebot/meshes', '*.*'))),
 
 
 
@@ -43,6 +46,7 @@ setup(
     entry_points={
         'console_scripts': [
             'arrow_teleop = turtlebot.arrow_teleop:main',
+            'odom_to_tf = turtlebot.odom_to_tf:main',
         ],
     },
 )

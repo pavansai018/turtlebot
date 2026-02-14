@@ -1,6 +1,7 @@
 <sdf version="1.6">
   <model name="simple_maze">
     <static>true</static>
+    <pose>3 3 0 0 0 0</pose>
     <link name="link">
       
       <collision name="wall_collision">
