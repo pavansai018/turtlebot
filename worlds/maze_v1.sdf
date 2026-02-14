@@ -1,185 +1,56 @@
 <?xml version="1.0" ?>
-<sdf version="1.9">
-  <world name="advanced_maze_world">
+<sdf version="1.8">
+  <world name="two_layer_maze">
+    <scene>
+      <ambient>0.7 0.7 0.7 1</ambient>
+      <background>0.3 0.3 0.3 1</background>
+      <shadows>false</shadows>
+    </scene>
 
-    <physics name="default" type="ode">
-      <max_step_size>0.004</max_step_size>
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
 
-    <!-- Lighting -->
-    <light name="sun_light" type="directional">
-      <cast_shadows>true</cast_shadows>
-      <pose>0 0 15 0 0 0</pose>
-      <diffuse>1 1 1 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
-      <direction>-0.4 0.2 -1</direction>
-    </light>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
 
-    <!-- Ground -->
-    <model name="ground">
+    <light type="directional" name="sun">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+        <model name="ground_plane">
       <static>true</static>
       <link name="link">
         <collision name="collision">
-          <geometry><box><size>40 40 0.1</size></box></geometry>
+          <geometry><plane><normal>0 0 1</normal><size>10 10</size></plane></geometry>
         </collision>
         <visual name="visual">
-          <geometry><box><size>40 40 0.1</size></box></geometry>
-          <material>
-            <ambient>0.9 0.9 0.9 1</ambient>
-            <diffuse>0.95 0.95 0.95 1</diffuse>
-          </material>
+          <geometry><plane><normal>0 0 1</normal><size>10 10</size></plane></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
         </visual>
       </link>
     </model>
-
-    <!-- MAZE -->
     <model name="maze">
       <static>true</static>
-      <link name="maze_link">
+      <pose>0 0 0.4 0 0 0</pose>
 
-        <!-- ===================== -->
-        <!-- OUTER WALLS WITH GAPS -->
-        <!-- ===================== -->
+      <link name="out_s"><pose>0.75 -2.5 0 0 0 0</pose><visual name="v"><geometry><box><size>3.5 0.1 0.8</size></box></geometry></visual><collision name="c"><geometry><box><size>3.5 0.1 0.8</size></box></geometry></collision></link>
+      
+      <link name="out_n"><pose>-0.75 2.5 0 0 0 0</pose><visual name="v"><geometry><box><size>3.5 0.1 0.8</size></box></geometry></visual><collision name="c"><geometry><box><size>3.5 0.1 0.8</size></box></geometry></collision></link>
+      
+      <link name="out_e"><pose>2.5 0 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></visual><collision name="c"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></collision></link>
+      <link name="out_w"><pose>-2.5 0 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></visual><collision name="c"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></collision></link>
 
-        <!-- NORTH wall (gap at x = -5 to -2 for EXIT) -->
-        <collision name="north_left_col">
-          <pose>-11 15 1.5 0 0 0</pose>
-          <geometry><box><size>18 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="north_left_vis">
-          <pose>-11 15 1.5 0 0 0</pose>
-          <geometry><box><size>18 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="north_right_col">
-          <pose>8 15 1.5 0 0 0</pose>
-          <geometry><box><size>14 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="north_right_vis">
-          <pose>8 15 1.5 0 0 0</pose>
-          <geometry><box><size>14 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- SOUTH wall (gap at x = 4 to 7 for ENTRY) -->
-        <collision name="south_left_col">
-          <pose>-9 -15 1.5 0 0 0</pose>
-          <geometry><box><size>22 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="south_left_vis">
-          <pose>-9 -15 1.5 0 0 0</pose>
-          <geometry><box><size>22 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="south_right_col">
-          <pose>12 -15 1.5 0 0 0</pose>
-          <geometry><box><size>10 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="south_right_vis">
-          <pose>12 -15 1.5 0 0 0</pose>
-          <geometry><box><size>10 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- EAST -->
-        <collision name="east_col">
-          <pose>15 0 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </collision>
-        <visual name="east_vis">
-          <pose>15 0 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </visual>
-
-        <!-- WEST -->
-        <collision name="west_col">
-          <pose>-15 0 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </collision>
-        <visual name="west_vis">
-          <pose>-15 0 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </visual>
-
-        <!-- ===================== -->
-        <!-- INTERNAL STRUCTURE -->
-        <!-- ===================== -->
-
-        <!-- Vertical spine walls -->
-        <collision name="v1c">
-          <pose>-8 8 1.5 0 0 1.57</pose>
-          <geometry><box><size>20 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="v1v">
-          <pose>-8 8 1.5 0 0 1.57</pose>
-          <geometry><box><size>20 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="v2c">
-          <pose>0 -2 1.5 0 0 1.57</pose>
-          <geometry><box><size>26 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="v2v">
-          <pose>0 -2 1.5 0 0 1.57</pose>
-          <geometry><box><size>26 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="v3c">
-          <pose>8 5 1.5 0 0 1.57</pose>
-          <geometry><box><size>18 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="v3v">
-          <pose>8 5 1.5 0 0 1.57</pose>
-          <geometry><box><size>18 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- Horizontal blockers -->
-        <collision name="h1c">
-          <pose>-5 10 1.5 0 0 0</pose>
-          <geometry><box><size>12 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h1v">
-          <pose>-5 10 1.5 0 0 0</pose>
-          <geometry><box><size>12 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="h2c">
-          <pose>5 7 1.5 0 0 0</pose>
-          <geometry><box><size>16 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h2v">
-          <pose>5 7 1.5 0 0 0</pose>
-          <geometry><box><size>16 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="h3c">
-          <pose>-2 2 1.5 0 0 0</pose>
-          <geometry><box><size>18 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h3v">
-          <pose>-2 2 1.5 0 0 0</pose>
-          <geometry><box><size>18 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="h4c">
-          <pose>6 -6 1.5 0 0 0</pose>
-          <geometry><box><size>14 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h4v">
-          <pose>6 -6 1.5 0 0 0</pose>
-          <geometry><box><size>14 0.5 3</size></box></geometry>
-        </visual>
-
-        <collision name="h5c">
-          <pose>-7 -9 1.5 0 0 0</pose>
-          <geometry><box><size>10 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h5v">
-          <pose>-7 -9 1.5 0 0 0</pose>
-          <geometry><box><size>10 0.5 3</size></box></geometry>
-        </visual>
-
-      </link>
+      <link name="in_w"><pose>-1.25 0 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 2.5 0.8</size></box></geometry></visual></link>
+      
+      <link name="in_e"><pose>1.25 0.75 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 1.0 0.8</size></box></geometry></visual></link>
+      
+      <link name="in_n"><pose>0.5 1.25 0 0 0 1.57</pose><visual name="v"><geometry><box><size>0.1 1.5 0.8</size></box></geometry></visual></link>
+      
+      <link name="in_s"><pose>0 -1.25 0 0 0 1.57</pose><visual name="v"><geometry><box><size>0.1 2.5 0.8</size></box></geometry></visual></link>
     </model>
-
   </world>
 </sdf>

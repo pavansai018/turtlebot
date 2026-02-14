@@ -36,7 +36,7 @@ def generate_launch_description():
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true')
-    world_file = os.path.join(get_package_share_directory('turtlebot'), 'worlds', 'simple_maze.sdf')
+    world_file = os.path.join(get_package_share_directory('turtlebot'), 'worlds', 'maze_v1.sdf')
 
     # Include the gz sim launch file  
     gz_sim_share = get_package_share_directory("ros_gz_sim")
@@ -124,8 +124,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             'use_sim_time': 'true',
-            'slam': 'True',
-            'map_subscribe_transient_local': 'true',
+            # 'slam': 'False',
+            # 'map_subscribe_transient_local': 'true',
             'params_file': PathJoinSubstitution([
                     FindPackageShare('turtlebot'),
                     'config',
@@ -167,5 +167,5 @@ def generate_launch_description():
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(slam_toolbox)
     ld.add_action(rviz_node)
-    # ld.add_action(nav2)
+    ld.add_action(nav2)
     return ld

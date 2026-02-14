@@ -1,146 +1,51 @@
 <?xml version="1.0" ?>
-<sdf version="1.9">
-  <world name="solvable_high_coverage_maze">
-
-    <physics type="ode">
-      <max_step_size>0.004</max_step_size>
+<sdf version="1.8">
+  <world name="complex_5x5_maze">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
 
-    <light name="sun" type="directional">
-      <pose>0 0 20 0 0 0</pose>
-      <diffuse>1 1 1 1</diffuse>
-      <direction>-0.5 0.2 -1</direction>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <!-- Ground -->
-    <model name="ground">
+    <model name="ground_plane">
       <static>true</static>
       <link name="link">
-        <collision name="c">
-          <geometry><box><size>50 50 0.1</size></box></geometry>
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>10 10</size></plane></geometry>
         </collision>
-        <visual name="v">
-        <material>
-            <ambient>0.9 0.9 0.9 1</ambient>
-            <diffuse>0.95 0.95 0.95 1</diffuse>
-          </material>
-          <geometry><box><size>50 50 0.1</size></box></geometry>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>10 10</size></plane></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
         </visual>
       </link>
     </model>
 
-    <!-- MAZE -->
-    <model name="maze">
+    <model name="complex_maze_walls">
       <static>true</static>
-      <link name="link">
+      <pose>0 0 0.4 0 0 0</pose> <link name="outer_s"><pose>1.25 -2.5 0 0 0 0</pose><collision name="c"><geometry><box><size>2.5 0.1 0.8</size></box></geometry></collision><visual name="v"><geometry><box><size>2.5 0.1 0.8</size></box></geometry></visual></link>
+      <link name="outer_n"><pose>-1.25 2.5 0 0 0 0</pose><collision name="c"><geometry><box><size>2.5 0.1 0.8</size></box></geometry></collision><visual name="v"><geometry><box><size>2.5 0.1 0.8</size></box></geometry></visual></link>
+      <link name="outer_e"><pose>2.5 0 0 0 0 0</pose><collision name="c"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></collision><visual name="v"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></visual></link>
+      <link name="outer_w"><pose>-2.5 0 0 0 0 0</pose><collision name="c"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></collision><visual name="v"><geometry><box><size>0.1 5.0 0.8</size></box></geometry></visual></link>
 
-        <!-- OUTER WALLS -->
-        <!-- West wall with entry gap at bottom -->
-        <collision name="west_top">
-          <pose>-20 5 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </collision>
-        <visual name="west_top_v">
-          <pose>-20 5 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </visual>
-
-        <!-- East wall with exit gap at top -->
-        <collision name="east_bottom">
-          <pose>20 -5 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </collision>
-        <visual name="east_bottom_v">
-          <pose>20 -5 1.5 0 0 0</pose>
-          <geometry><box><size>0.5 30 3</size></box></geometry>
-        </visual>
-
-        <!-- North -->
-        <collision name="north">
-          <pose>0 20 1.5 0 0 0</pose>
-          <geometry><box><size>40 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="north_v">
-          <pose>0 20 1.5 0 0 0</pose>
-          <geometry><box><size>40 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- South -->
-        <collision name="south">
-          <pose>0 -20 1.5 0 0 0</pose>
-          <geometry><box><size>40 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="south_v">
-          <pose>0 -20 1.5 0 0 0</pose>
-          <geometry><box><size>40 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- SERPENTINE PASSAGE WALLS -->
-        <!-- Horizontal strips alternating open sides -->
-
-        <!-- Row 1 -->
-        <collision name="h1">
-          <pose>0 -15 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h1v">
-          <pose>0 -15 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- Row 2 -->
-        <collision name="h2">
-          <pose>0 -10 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h2v">
-          <pose>0 -10 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- Row 3 -->
-        <collision name="h3">
-          <pose>0 -5 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h3v">
-          <pose>0 -5 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- Row 4 -->
-        <collision name="h4">
-          <pose>0 0 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h4v">
-          <pose>0 0 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- Row 5 -->
-        <collision name="h5">
-          <pose>0 5 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h5v">
-          <pose>0 5 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </visual>
-
-        <!-- Row 6 -->
-        <collision name="h6">
-          <pose>0 10 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </collision>
-        <visual name="h6v">
-          <pose>0 10 1.5 0 0 0</pose>
-          <geometry><box><size>35 0.5 3</size></box></geometry>
-        </visual>
-
-      </link>
+      <link name="v1"><pose>-1.5 1.0 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 2.0 0.8</size></box></geometry></visual></link>
+      <link name="v2"><pose>-0.5 -1.0 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 2.0 0.8</size></box></geometry></visual></link>
+      <link name="v3"><pose>0.5 1.5 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 1.0 0.8</size></box></geometry></visual></link>
+      <link name="v4"><pose>1.5 -0.5 0 0 0 0</pose><visual name="v"><geometry><box><size>0.1 3.0 0.8</size></box></geometry></visual></link>
+      
+      <link name="h1"><pose>-1.0 0.5 0 0 0 1.57</pose><visual name="v"><geometry><box><size>0.1 1.0 0.8</size></box></geometry></visual></link>
+      <link name="h2"><pose>0.0 -0.5 0 0 0 1.57</pose><visual name="v"><geometry><box><size>0.1 2.0 0.8</size></box></geometry></visual></link>
+      <link name="h3"><pose>1.0 1.5 0 0 0 1.57</pose><visual name="v"><geometry><box><size>0.1 1.0 0.8</size></box></geometry></visual></link>
+      <link name="h4"><pose>-2.0 -1.5 0 0 0 1.57</pose><visual name="v"><geometry><box><size>0.1 1.0 0.8</size></box></geometry></visual></link>
+      <link name="h5"><pose>0.5 0.5 0 0 0 1.57</pose><visual name="v"><geometry><box><size>0.1 1.0 0.8</size></box></geometry></visual></link>
     </model>
-
   </world>
 </sdf>
