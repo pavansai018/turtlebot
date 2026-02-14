@@ -99,5 +99,5 @@ def generate_maze_stl(image_path, output_filename, wall_height=5.0):
     print(f"Success! Saved {output_filename}")
 
 if __name__ == "__main__":
-    img_path = '/home/pavan/Downloads/maze.webp'
-    generate_maze_stl_v2(img_path, 'circular_maze.stl')
+    img_path = '../models/simple_maze/simple_maze.png'
+    generate_maze_stl_v2(img_path, 'simple_maze.stl')

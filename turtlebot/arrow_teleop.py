@@ -8,7 +8,7 @@ import termios
 import tty
 import select
 
-LINEAR_SPEED = 0.2
+LINEAR_SPEED = 0.4
 ANGULAR_SPEED = 1.0
 
 

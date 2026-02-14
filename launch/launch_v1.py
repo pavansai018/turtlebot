@@ -35,7 +35,7 @@ def generate_launch_description():
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true')
-    world_file = os.path.join(get_package_share_directory('turtlebot'), 'worlds', 'circular_maze.sdf')
+    world_file = os.path.join(get_package_share_directory('turtlebot'), 'worlds', 'simple_maze.sdf')
 
     # Include the gz sim launch file  
     gz_sim_share = get_package_share_directory("ros_gz_sim")
