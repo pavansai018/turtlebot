@@ -140,7 +140,7 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}],
             arguments=['-d', os.path.join(
-                        get_package_share_directory('turtlebot'), 'config', 'turtlebot_v2.rviz')]
+                        get_package_share_directory('turtlebot'), 'config', 'turtlebot_v3.rviz')]
         )
 
     joint_state_publisher_node = Node(
