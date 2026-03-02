@@ -4,7 +4,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import Node
+from launch_ros.actions import Node, LifecycleNode
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 
@@ -74,7 +74,7 @@ def generate_launch_description():
             "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
             "/imu/data@sensor_msgs/msg/Imu[gz.msgs.IMU",
-            # '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
         ],
         parameters=[{'use_sim_time': use_sim_time}],
     )
@@ -112,6 +112,10 @@ def generate_launch_description():
 
         }.items()
     )
+
+    map_file = PathJoinSubstitution([
+        FindPackageShare('turtlebot'), 'maps', 'maze_2_6x5.yaml'
+    ])
     nav2 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([
@@ -124,6 +128,7 @@ def generate_launch_description():
             'use_sim_time': 'true',
             # 'slam': 'False',
             # 'map_subscribe_transient_local': 'true',
+            # 'map': map_file,
             'params_file': PathJoinSubstitution([
                     FindPackageShare('turtlebot'),
                     'config',
@@ -142,13 +147,6 @@ def generate_launch_description():
             arguments=['-d', os.path.join(
                         get_package_share_directory('turtlebot'), 'config', 'turtlebot_v3.rviz')]
         )
-
-    joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
 
     # Create the launch description and populate
     ld = LaunchDescription()
