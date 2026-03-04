@@ -30,7 +30,7 @@ class YoloDetectionNode(Node):
         self.get_logger().info("YOLOv8 Detection Node Started")
 
         # Load YOLOv8 model
-        self.model = YOLO("yolov8s.pt")
+        self.model = YOLO("yolov8l.pt")
         self.model.to('cuda' if torch.cuda.is_available() else 'cpu')
 
     def image_callback(self, msg):
@@ -63,13 +63,15 @@ class YoloDetectionNode(Node):
 
                 hypothesis = ObjectHypothesisWithPose()
                 hypothesis.hypothesis.class_id = str(cls_id)
+                label_name = self.model.names[cls_id]  # get human-readable label
                 hypothesis.hypothesis.score = float(conf)
                 detection.results.append(hypothesis)
                 detections_msg.detections.append(detection)
                 
                 # Draw bounding box on annotated image
                 cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-                label = f"{cls_id}:{conf:.2f}"
+                # label = f"{cls_id}:{conf:.2f}"
+                label = f"{label_name}:{conf:.2f}"
                 cv2.putText(annotated_image, label, (int(x1), int(y1)-5),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
         
