@@ -82,6 +82,10 @@ class YoloDetectionNode(Node):
         annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, encoding='bgr8')
         annotated_msg.header = msg.header
         self.image_pub.publish(annotated_msg)
+        # Log info
+        num_detections = len(detections_msg.detections)
+        det_labels = [self.model.names[int(d.results[0].hypothesis.class_id)] for d in detections_msg.detections]
+        self.get_logger().info(f"Published {num_detections} detections: {det_labels}")
 
 def main(args=None):
     rclpy.init(args=args)
