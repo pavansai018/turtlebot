@@ -59,6 +59,7 @@ setup(
     entry_points={
         'console_scripts': [
             'arrow_teleop = turtlebot.arrow_teleop:main',
+            'object_detection = turtlebot.object_detection:main',
         ],
     },
 )
