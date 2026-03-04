@@ -18,7 +18,11 @@ def generate_launch_description():
     local_model_path = os.path.join(get_package_share_directory('turtlebot'), 'models')
     set_gazebo_model_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
-        value=[local_model_path]
+        value=[
+            local_model_path,
+             ':',
+             os.path.join(get_package_share_directory('gazebo_worlds'), 'models')
+            ]
     )
     robot_desc = ParameterValue(Command(
         [
@@ -34,7 +38,8 @@ def generate_launch_description():
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true')
-    world_file = os.path.join(get_package_share_directory('turtlebot'), 'worlds', 'maze_2_6x5.sdf')
+    # world_file = os.path.join(get_package_share_directory('turtlebot'), 'worlds', 'maze_2_6x5.sdf')
+    world_file = os.path.join(get_package_share_directory('gazebo_worlds'), 'worlds', 'hospital.world')
 
     # Include the gz sim launch file  
     gz_sim_share = get_package_share_directory("ros_gz_sim")
@@ -52,8 +57,8 @@ def generate_launch_description():
             "-topic", "/robot_description",
             "-name", "turtlebot_burger",
             "-allow_renaming", "true",
-            "-x", "0.0",
-            "-y", "0.0",
+            "-x", "1.0",
+            "-y", "1.0",
             "-z", "0.01",
         ],
         parameters=[{'use_sim_time': use_sim_time}],
@@ -74,7 +79,7 @@ def generate_launch_description():
             "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
             "/imu/data@sensor_msgs/msg/Imu[gz.msgs.IMU",
-            # '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
         ],
         parameters=[{'use_sim_time': use_sim_time}],
     )
