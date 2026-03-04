@@ -80,8 +80,14 @@ def generate_launch_description():
             "/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan",
             "/imu/data@sensor_msgs/msg/Imu[gz.msgs.IMU",
             '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/camera/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/camera/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
+            '/camera/image@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/camera/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
         ],
-        parameters=[{'use_sim_time': use_sim_time}],
+        parameters=[
+            {'use_sim_time': use_sim_time},
+            ],
     )
 
     # Robot state publisher
@@ -136,7 +142,16 @@ def generate_launch_description():
         ]),
         }.items()
     )
-
+    static_tf_bridge = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='camera_frame_fix',
+        arguments=[
+            "0", "0", "0", "0", "0", "0",  # no translation/rotation
+            "base_link",                    # parent
+            "turtlebot_burger/base_link/realsense"  # child
+        ]
+    )
 
     rviz_node = Node(
             package='rviz2',
@@ -171,4 +186,5 @@ def generate_launch_description():
     ld.add_action(slam_toolbox)
     ld.add_action(rviz_node)
     # ld.add_action(nav2)
+    ld.add_action(static_tf_bridge)
     return ld
