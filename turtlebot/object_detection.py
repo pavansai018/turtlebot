@@ -7,6 +7,7 @@ from cv_bridge import CvBridge
 from ultralytics import YOLO
 import torch
 import cv2
+import random
 
 class YoloDetectionNode(Node):
     def __init__(self):
@@ -15,7 +16,7 @@ class YoloDetectionNode(Node):
         # Subscriptions
         self.subscription = self.create_subscription(
             Image,
-            '/camera/image',
+            '/camera/image_raw',
             self.image_callback,
             10
         )
@@ -31,14 +32,32 @@ class YoloDetectionNode(Node):
 
         # Load YOLOv8 model
         self.model = YOLO("yolov8l.pt")
-        self.model.to('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+        self.model.to(self.device)
 
+        self.class_colors = self.generate_class_colors(self.model.names)
+
+    def generate_class_colors(self, class_names):
+        """
+        Generate a fixed unique BGR color for each class.
+        Using a fixed seed makes colors consistent across runs.
+        """
+        random.seed(42)
+        colors = {}
+        for cls_id in class_names.keys():
+            colors[cls_id] = (
+                random.randint(0, 255),  # Blue
+                random.randint(0, 255),  # Green
+                random.randint(0, 255)   # Red
+            )
+        return colors
+    
     def image_callback(self, msg):
         # Convert ROS Image to OpenCV
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         
         # Run YOLOv8 inference
-        results = self.model.predict(cv_image, imgsz=640, device=0, verbose=False)
+        results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
         
         # Prepare Detection2DArray message
         detections_msg = Detection2DArray()
@@ -67,13 +86,32 @@ class YoloDetectionNode(Node):
                 hypothesis.hypothesis.score = float(conf)
                 detection.results.append(hypothesis)
                 detections_msg.detections.append(detection)
+
+                color = self.class_colors[cls_id]
                 
                 # Draw bounding box on annotated image
-                cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-                # label = f"{cls_id}:{conf:.2f}"
+                cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
+                # Draw label background for readability
                 label = f"{label_name}:{conf:.2f}"
-                cv2.putText(annotated_image, label, (int(x1), int(y1)-5),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+                (text_w, text_h), baseline = cv2.getTextSize(
+                    label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
+                )
+                cv2.rectangle(
+                    annotated_image,
+                    (int(x1), int(y1) - text_h - 8),
+                    (int(x1) + text_w, int(y1)),
+                    color,
+                    -1
+                )
+                cv2.putText(
+                    annotated_image,
+                    label,
+                    (int(x1), int(y1) - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (255, 255, 255),
+                    1
+                )
         
         # Publish detections
         self.detections_pub.publish(detections_msg)
