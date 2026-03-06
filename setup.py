@@ -32,6 +32,7 @@ setup(
         (os.path.join('share', package_name, 'models'), glob(os.path.join('models', '*.*'))),
         (os.path.join('share', package_name, 'maps'), glob(os.path.join('maps', '*.*'))),
         *package_files('models'),
+        *package_files('model_weights'),
         # (os.path.join('share', package_name, 'models/circular_maze'), glob(os.path.join('models/circular_maze', '*.*'))),
         # (os.path.join('share', package_name, 'models/circular_maze/meshes'), glob(os.path.join('models/circular_maze/meshes', '*.*'))),
         # (os.path.join('share', package_name, 'models/square_maze'), glob(os.path.join('models/square_maze', '*.*'))),

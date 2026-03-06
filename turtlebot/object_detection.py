@@ -4,15 +4,25 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose, BoundingBox2D, Pose2D
 from cv_bridge import CvBridge
+from ament_index_python.packages import get_package_share_directory
 from ultralytics import YOLO
 import torch
 import cv2
+import os
 import random
+import time
 
 class YoloDetectionNode(Node):
     def __init__(self):
         super().__init__('yolo_detection_node')
-        
+        # Declare a ROS parameter
+        self.declare_parameter('rate_limit', 1.0)
+        # Get Parameter value
+        rate_limit = self.get_parameter('rate_limit').get_parameter_value().double_value
+        self.get_logger().info("Detection Rate Limit: %.2f"%rate_limit)
+        self.last_detection_time = time.time()
+        self.detection_interval = 1.0/rate_limit # minimum time between detections
+
         # Subscriptions
         self.subscription = self.create_subscription(
             Image,
@@ -31,7 +41,10 @@ class YoloDetectionNode(Node):
         self.get_logger().info("YOLOv8 Detection Node Started")
 
         # Load YOLOv8 model
-        self.model = YOLO("yolov8l.pt")
+        pkg_dir = get_package_share_directory('turtlebot')
+        # Full path to model file (Within installation directory)
+        self.model_path = os.path.join(pkg_dir, 'model_weights', 'yolov8l.pt')
+        self.model = YOLO(self.model_path)
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         self.model.to(self.device)
 
@@ -53,6 +66,11 @@ class YoloDetectionNode(Node):
         return colors
     
     def image_callback(self, msg):
+        # Control detection frame rate
+        if (self.detection_interval > (time.time() - self.last_detection_time)):
+            # If a detection_interval has not yet passed since last detection, ignore image
+            return
+        self.last_detection_time = time.time()
         # Convert ROS Image to OpenCV
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         
@@ -120,6 +138,13 @@ class YoloDetectionNode(Node):
         annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, encoding='bgr8')
         annotated_msg.header = msg.header
         self.image_pub.publish(annotated_msg)
+        # Check execution time
+        if (self.detection_interval < (time.time() -self.last_detection_time)):
+            # The detection process itself took a longer time than allocated detection_interval
+            # The hardware is not capable enough to run detection at given rate
+            self.get_logger().warn(
+                "Possible : Rate limit too high! Should be less than : %.2f Hz"%(
+                    (1/(time.time()-self.last_detection_time))))
         # Log info
         num_detections = len(detections_msg.detections)
         det_labels = [self.model.names[int(d.results[0].hypothesis.class_id)] for d in detections_msg.detections]
