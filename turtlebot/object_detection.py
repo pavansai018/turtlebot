@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose, BoundingBox2D, Pose2D
 from cv_bridge import CvBridge
 from ament_index_python.packages import get_package_share_directory
@@ -16,19 +16,36 @@ class YoloDetectionNode(Node):
         super().__init__('yolo_detection_node')
         # Declare a ROS parameter
         self.declare_parameter('rate_limit', 1.0)
+        self.declare_parameter('image_topic', '/camera/image_raw')
+        self.declare_parameter('image_type', 'raw') # raw or compressed
+
         # Get Parameter value
-        rate_limit = self.get_parameter('rate_limit').get_parameter_value().double_value
-        self.get_logger().info("Detection Rate Limit: %.2f"%rate_limit)
+        self.rate_limit = self.get_parameter('rate_limit').get_parameter_value().double_value
+        self.image_topic = self.get_parameter('image_topic').value
+        self.image_type = self.get_parameter('image_type').value
+
+        self.get_logger().info(f"Detection Rate Limit: {self.rate_limit:.2f}")
+        self.get_logger().info(f"Image Topic: {self.image_topic}")
+        self.get_logger().info(f"Image Type: {self.image_type}")
+
         self.last_detection_time = time.time()
-        self.detection_interval = 1.0/rate_limit # minimum time between detections
+        self.detection_interval = 1.0/self.rate_limit if self.rate_limit > 0 else 0 # minimum time between detections
 
         # Subscriptions
-        self.subscription = self.create_subscription(
-            Image,
-            '/camera/image_raw',
-            self.image_callback,
-            10
-        )
+        if self.image_type == 'compressed':
+            self.subscription = self.create_subscription(
+                CompressedImage,
+                self.image_topic,
+                self.compressed_image_callback,
+                10
+            )
+        else:
+            self.subscription = self.create_subscription(
+                Image,
+                self.image_topic,
+                self.raw_image_callback,
+                10
+            )
         
         # Publishers
         self.detections_pub = self.create_publisher(Detection2DArray, '/camera/detections', 10)
@@ -64,7 +81,7 @@ class YoloDetectionNode(Node):
             )
         return colors
     
-    def image_callback(self, msg):
+    def raw_image_callback(self, msg):
         # Control detection frame rate
         if (self.detection_interval > (time.time() - self.last_detection_time)):
             # If a detection_interval has not yet passed since last detection, ignore image
@@ -72,13 +89,25 @@ class YoloDetectionNode(Node):
         self.last_detection_time = time.time()
         # Convert ROS Image to OpenCV
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
-        
+        self.process_image(cv_image, msg.header)
+
+    def compressed_image_callback(self, msg):
+         # Control detection frame rate
+        if (self.detection_interval > (time.time() - self.last_detection_time)):
+            # If a detection_interval has not yet passed since last detection, ignore image
+            return
+        self.last_detection_time = time.time()
+        # Convert ROS Image to OpenCV
+        cv_image = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        self.process_image(cv_image, msg.header)
+
+    def process_image(self, cv_image, header):
         # Run YOLOv8 inference
         results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
         
         # Prepare Detection2DArray message
         detections_msg = Detection2DArray()
-        detections_msg.header = msg.header
+        detections_msg.header = header
         
         # Annotate image
         annotated_image = cv_image.copy()
@@ -135,7 +164,7 @@ class YoloDetectionNode(Node):
         
         # Publish annotated image
         annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, encoding='bgr8')
-        annotated_msg.header = msg.header
+        annotated_msg.header = header
         self.image_pub.publish(annotated_msg)
         # Check execution time
         if (self.detection_interval < (time.time() -self.last_detection_time)):

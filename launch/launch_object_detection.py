@@ -10,6 +10,20 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
+
+    rate_limit_arg = DeclareLaunchArgument(
+        'rate_limit',
+        default_value='30.0',
+    )
+    image_topic_arg = DeclareLaunchArgument(
+        'image_topic',
+        default_value='/camera/image_raw',
+    )
+    image_type_arg = DeclareLaunchArgument(
+        'image_type',
+        default_value='raw',
+    )
+
     # Create the launch configuration variables
     use_sim_time = LaunchConfiguration('use_sim_time')
     urdf = os.path.join(get_package_share_directory(
@@ -175,6 +189,13 @@ def generate_launch_description():
         executable='object_detection',
         name='YOLO_Object_Detection',
         output='screen',
+        parameters=[
+            {
+                'rate_limit': LaunchConfiguration('rate_limit'),
+                'image_topic': LaunchConfiguration('image_topic'),
+                'image_type': LaunchConfiguration('image_type'),
+            },
+        ],
     )
 
     # Create the launch description and populate
@@ -192,5 +213,8 @@ def generate_launch_description():
     # ld.add_action(slam_toolbox)
     # ld.add_action(rviz_node)
     # ld.add_action(static_tf_bridge)
+    ld.add_action(rate_limit_arg)
+    ld.add_action(image_topic_arg)
+    ld.add_action(image_type_arg)
     ld.add_action(object_detection_node)
     return ld
