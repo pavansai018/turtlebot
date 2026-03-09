@@ -23,6 +23,10 @@ def generate_launch_description():
         'image_type',
         default_value='raw',
     )
+    enable_ocr_arg = DeclareLaunchArgument(
+        'enable_ocr',
+        default_value='false',
+    )
     
     object_detection_node = Node(
         package='turtlebot',
@@ -34,6 +38,7 @@ def generate_launch_description():
                 'rate_limit': LaunchConfiguration('rate_limit'),
                 'image_topic': LaunchConfiguration('image_topic'),
                 'image_type': LaunchConfiguration('image_type'),
+                'enable_ocr': LaunchConfiguration('enable_ocr'),
             },
         ],
     )
@@ -58,6 +63,7 @@ def generate_launch_description():
     ld.add_action(rate_limit_arg)
     ld.add_action(image_topic_arg)
     ld.add_action(image_type_arg)
+    ld.add_action(enable_ocr_arg)
     ld.add_action(object_detection_node)
     ld.add_action(gps_publisher)
     return ld

@@ -4,10 +4,11 @@ from sensor_msgs.msg import Image, CompressedImage
 from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose, BoundingBox2D, Pose2D
 from cv_bridge import CvBridge
 from ament_index_python.packages import get_package_share_directory
-from ultralytics import YOLO
-import torch
-import cv2
+from ultralytics import YOLO #type: ignore
+import torch # type: ignore
+import cv2 # type: ignore
 import os
+from turtlebot.nodes import ocr
 import random
 import time
 
@@ -18,15 +19,18 @@ class YoloDetectionNode(Node):
         self.declare_parameter('rate_limit', 1.0)
         self.declare_parameter('image_topic', '/camera/image_raw')
         self.declare_parameter('image_type', 'raw') # raw or compressed
+        self.declare_parameter('enable_ocr', False) 
 
         # Get Parameter value
         self.rate_limit = self.get_parameter('rate_limit').get_parameter_value().double_value
         self.image_topic = self.get_parameter('image_topic').value
         self.image_type = self.get_parameter('image_type').value
+        self.enable_ocr = self.get_parameter('enable_ocr').value
 
         self.get_logger().info(f"Detection Rate Limit: {self.rate_limit:.2f}")
         self.get_logger().info(f"Image Topic: {self.image_topic}")
         self.get_logger().info(f"Image Type: {self.image_type}")
+        self.get_logger().info(f"OCR Status: {self.enable_ocr}")
 
         self.last_detection_time = time.time()
         self.detection_interval = 1.0/self.rate_limit if self.rate_limit > 0 else 0 # minimum time between detections
@@ -104,7 +108,10 @@ class YoloDetectionNode(Node):
     def process_image(self, cv_image, header):
         # Run YOLOv8 inference
         results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
-        
+        if self.enable_ocr:
+            pass
+        else:
+            pass
         # Prepare Detection2DArray message
         detections_msg = Detection2DArray()
         detections_msg.header = header

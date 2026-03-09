@@ -27,7 +27,6 @@ setup(
         (os.path.join('share', package_name, 'urdf'), glob(os.path.join('urdf', '*.*'))),
         (os.path.join('share', package_name, 'meshes'), glob(os.path.join('meshes', '*'))),
         (os.path.join('share', package_name, 'worlds'), glob(os.path.join('worlds', '*.*'))),
-        (os.path.join('share', package_name, 'nodes'), glob(os.path.join('nodes', '*.*'))),
         (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.*'))),
         (os.path.join('share', package_name, 'models'), glob(os.path.join('models', '*.*'))),
         (os.path.join('share', package_name, 'maps'), glob(os.path.join('maps', '*.*'))),
