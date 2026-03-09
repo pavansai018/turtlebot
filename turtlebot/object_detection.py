@@ -64,7 +64,9 @@ class YoloDetectionNode(Node):
         pkg_dir = get_package_share_directory('turtlebot')
         # Full path to model file (Within installation directory)
         self.model_path = os.path.join(pkg_dir, 'model_weights', 'yolov8l.pt')
+        self.east_model_path = os.path.join(pkg_dir, 'model_weights', 'frozen_east_text_detection.pb')
         self.model = YOLO(self.model_path)
+        self.text_detection_model = cv2.dnn.readNet(self.east_model_path) if self.enable_ocr else None
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         self.model.to(self.device)
 
@@ -109,7 +111,7 @@ class YoloDetectionNode(Node):
         # Run YOLOv8 inference
         results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
         if self.enable_ocr:
-            pass
+            ocr_boxes = ocr.run_ocr(image=cv_image, east_model=self.east_model_path, det_model=self.text_detection_model)
         else:
             pass
         # Prepare Detection2DArray message
@@ -118,7 +120,23 @@ class YoloDetectionNode(Node):
         
         # Annotate image
         annotated_image = cv_image.copy()
-        
+        for (startX, startY, endX, endY) in ocr_boxes:
+                cv2.rectangle(
+                    annotated_image,
+                    (startX, startY),
+                    (endX, endY),
+                    (0, 255, 255),
+                    2
+                )
+                cv2.putText(
+                    annotated_image,
+                    'text',
+                    (int(startX), int(startY) - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 0, 0),
+                    1
+                )
         for r in results:
             boxes = r.boxes
             for box in boxes:
