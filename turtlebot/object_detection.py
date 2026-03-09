@@ -110,17 +110,11 @@ class YoloDetectionNode(Node):
     def process_image(self, cv_image, header):
         # Run YOLOv8 inference
         results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
-        if self.enable_ocr:
-            ocr_boxes = ocr.run_ocr(image=cv_image, east_model=self.east_model_path, det_model=self.text_detection_model)
-        else:
-            pass
-        # Prepare Detection2DArray message
-        detections_msg = Detection2DArray()
-        detections_msg.header = header
-        
         # Annotate image
         annotated_image = cv_image.copy()
-        for (startX, startY, endX, endY) in ocr_boxes:
+        if self.enable_ocr:
+            ocr_boxes = ocr.detect_text(image=cv_image, east_model=self.east_model_path, det_model=self.text_detection_model)
+            for (startX, startY, endX, endY) in ocr_boxes:
                 cv2.rectangle(
                     annotated_image,
                     (startX, startY),
@@ -137,6 +131,12 @@ class YoloDetectionNode(Node):
                     (0, 0, 0),
                     1
                 )
+        else:
+            pass
+        # Prepare Detection2DArray message
+        detections_msg = Detection2DArray()
+        detections_msg.header = header
+        
         for r in results:
             boxes = r.boxes
             for box in boxes:
