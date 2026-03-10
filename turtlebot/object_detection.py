@@ -21,17 +21,20 @@ class YoloDetectionNode(Node):
         self.declare_parameter('image_topic', '/camera/image_raw')
         self.declare_parameter('image_type', 'raw') # raw or compressed
         self.declare_parameter('enable_ocr', False) 
+        self.declare_parameter('detection_model', 'yolov8l.pt')
 
         # Get Parameter value
         self.rate_limit = self.get_parameter('rate_limit').get_parameter_value().double_value
         self.image_topic = self.get_parameter('image_topic').value
         self.image_type = self.get_parameter('image_type').value
         self.enable_ocr = self.get_parameter('enable_ocr').value
+        self.detection_model = self.get_parameter('detection_model').value
 
         self.get_logger().info(f"Detection Rate Limit: {self.rate_limit:.2f}")
         self.get_logger().info(f"Image Topic: {self.image_topic}")
         self.get_logger().info(f"Image Type: {self.image_type}")
         self.get_logger().info(f"OCR Status: {self.enable_ocr}")
+        self.get_logger().info(f"Detection Model: {self.detection_model}")
 
         self.last_detection_time = time.time()
         self.detection_interval = 1.0/self.rate_limit if self.rate_limit > 0 else 0 # minimum time between detections
@@ -64,7 +67,7 @@ class YoloDetectionNode(Node):
         # Load YOLOv8 model
         pkg_dir = get_package_share_directory('turtlebot')
         # Full path to model file (Within installation directory)
-        self.model_path = os.path.join(pkg_dir, 'model_weights', 'yolov8l.pt')
+        self.model_path = os.path.join(pkg_dir, 'model_weights', self.detection_model)
         self.east_model_path = os.path.join(pkg_dir, 'model_weights', 'frozen_east_text_detection.pb')
         self.model = YOLO(self.model_path)
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
