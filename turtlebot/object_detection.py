@@ -11,6 +11,7 @@ import os
 from turtlebot.nodes import ocr
 import random
 import time
+import numpy as np
 
 class YoloDetectionNode(Node):
     def __init__(self):
@@ -66,9 +67,15 @@ class YoloDetectionNode(Node):
         self.model_path = os.path.join(pkg_dir, 'model_weights', 'yolov8l.pt')
         self.east_model_path = os.path.join(pkg_dir, 'model_weights', 'frozen_east_text_detection.pb')
         self.model = YOLO(self.model_path)
-        self.text_detection_model = cv2.dnn.readNet(self.east_model_path) if self.enable_ocr else None
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         self.model.to(self.device)
+        if self.enable_ocr:
+            self.text_detection_model = cv2.dnn.readNet(self.east_model_path)
+            from paddleocr import PaddleOCR # type: ignore
+            self.ocr_engine = PaddleOCR(
+                use_angle_cls=False,
+                lang='en',
+            )
 
         self.class_colors = self.generate_class_colors(self.model.names)
 
@@ -113,24 +120,37 @@ class YoloDetectionNode(Node):
         # Annotate image
         annotated_image = cv_image.copy()
         if self.enable_ocr:
-            ocr_boxes = ocr.detect_text(image=cv_image, east_model=self.east_model_path, det_model=self.text_detection_model)
-            for (startX, startY, endX, endY) in ocr_boxes:
-                cv2.rectangle(
-                    annotated_image,
-                    (startX, startY),
-                    (endX, endY),
-                    (0, 255, 255),
-                    2
+            ocr_result = self.ocr_engine.predict(
+                cv_image,
+                use_doc_orientation_classify=False,
+                use_doc_unwarping=False,
+                use_textline_orientation=False,
                 )
+            polys = ocr_result[0]['dt_polys']
+            texts = ocr_result[0]['rec_texts']
+            ocr_boxes = ocr_result[0]['rec_boxes']
+            for box, poly, text in zip(ocr_boxes, polys, texts):
+                if not text.strip():
+                    continue
+                x1, y1, x2, y2 = map(int, box)
+                # Draw rectangle
+                cv2.rectangle(annotated_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                # Draw polygon
+                pts = np.array(poly, dtype=np.int32).reshape(-1, 2)
+                cv2.polylines(annotated_image, [pts], isClosed=True, color=(0, 0, 255), thickness=2)
+                # Position text above box
+                text_pos = (x1, max(0, y1 - 8))
                 cv2.putText(
                     annotated_image,
-                    'text',
-                    (int(startX), int(startY) - 5),
+                    text,
+                    text_pos,
                     cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (0, 0, 0),
-                    1
+                    0.6,
+                    (0, 0, 255),
+                    2,
+                    cv2.LINE_AA
                 )
+            
         else:
             pass
         # Prepare Detection2DArray message
