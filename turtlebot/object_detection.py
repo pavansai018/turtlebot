@@ -21,6 +21,8 @@ class YoloDetectionNode(Node):
         self.declare_parameter('image_topic', '/camera/image_raw')
         self.declare_parameter('image_type', 'raw') # raw or compressed
         self.declare_parameter('enable_ocr', False) 
+        self.declare_parameter('visualize_detection', True)
+        self.declare_parameter('visualize_segmentation', False)
         self.declare_parameter('detection_model', 'yolov8l.pt')
 
         # Get Parameter value
@@ -29,12 +31,16 @@ class YoloDetectionNode(Node):
         self.image_type = self.get_parameter('image_type').value
         self.enable_ocr = self.get_parameter('enable_ocr').value
         self.detection_model = self.get_parameter('detection_model').value
+        self.visualize_detection = self.get_parameter('visualize_detection').value
+        self.visualize_segmentation = self.get_parameter('visualize_segmentation').value
 
         self.get_logger().info(f"Detection Rate Limit: {self.rate_limit:.2f}")
         self.get_logger().info(f"Image Topic: {self.image_topic}")
         self.get_logger().info(f"Image Type: {self.image_type}")
         self.get_logger().info(f"OCR Status: {self.enable_ocr}")
         self.get_logger().info(f"Detection Model: {self.detection_model}")
+        self.get_logger().info(f"Visualize Detections: {self.visualize_detection}")
+        self.get_logger().info(f"Visualize Segmentations: {self.visualize_segmentation}")
 
         self.last_detection_time = time.time()
         self.detection_interval = 1.0/self.rate_limit if self.rate_limit > 0 else 0 # minimum time between detections
@@ -57,7 +63,8 @@ class YoloDetectionNode(Node):
         
         # Publishers
         self.detections_pub = self.create_publisher(Detection2DArray, '/camera/detections', 10)
-        self.image_pub = self.create_publisher(Image, '/camera/image_annotated', 10)
+        self.annotated_detections_pub = self.create_publisher(Image, '/camera/image_annotated', 10)
+        self.segmented_detections_pub = self.create_publisher(Image, '/camera/image_segmented', 10)
         
         # CvBridge for converting ROS Image <-> OpenCV
         self.bridge = CvBridge()
@@ -125,6 +132,7 @@ class YoloDetectionNode(Node):
         results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
         # Annotate image
         annotated_image = cv_image.copy()
+        segmented_image = cv_image.copy()
         if self.enable_ocr:
             ocr_result = self.ocr_engine.predict(
                 cv_image,
@@ -140,7 +148,7 @@ class YoloDetectionNode(Node):
                     continue
                 x1, y1, x2, y2 = map(int, box)
                 # Draw rectangle
-                cv2.rectangle(annotated_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                # cv2.rectangle(annotated_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 # Draw polygon
                 pts = np.array(poly, dtype=np.int32).reshape(-1, 2)
                 cv2.polylines(annotated_image, [pts], isClosed=True, color=(0, 0, 255), thickness=2)
@@ -165,7 +173,8 @@ class YoloDetectionNode(Node):
         
         for r in results:
             boxes = r.boxes
-            for box in boxes:
+            masks = r.masks if self.visualize_segmentation else None
+            for i, box in enumerate(boxes):
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
                 conf = float(box.conf[0].cpu().numpy())
                 cls_id = int(box.cls[0].cpu().numpy())
@@ -185,7 +194,12 @@ class YoloDetectionNode(Node):
                 detections_msg.detections.append(detection)
 
                 color = self.class_colors[cls_id]
-                
+                # Draw segmentation mask
+                if masks is not None:
+                    polygon = masks.xy[i]  # segmentation polygon
+                    pts = np.array(polygon, dtype=np.int32)
+                    cv2.fillPoly(segmented_image, [pts], color)
+
                 # Draw bounding box on annotated image
                 cv2.rectangle(annotated_image, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
                 # Draw label background for readability
@@ -216,7 +230,11 @@ class YoloDetectionNode(Node):
         # Publish annotated image
         annotated_msg = self.bridge.cv2_to_imgmsg(annotated_image, encoding='bgr8')
         annotated_msg.header = header
-        self.image_pub.publish(annotated_msg)
+        self.annotated_detections_pub.publish(annotated_msg)
+        # Publish segmented image
+        segmented_msg = self.bridge.cv2_to_imgmsg(segmented_image, encoding='bgr8')
+        segmented_msg.header = header
+        self.segmented_detections_pub.publish(segmented_msg)
         # Check execution time
         if (self.detection_interval < (time.time() -self.last_detection_time)):
             # The detection process itself took a longer time than allocated detection_interval
@@ -228,6 +246,8 @@ class YoloDetectionNode(Node):
         num_detections = len(detections_msg.detections)
         det_labels = [self.model.names[int(d.results[0].hypothesis.class_id)] for d in detections_msg.detections]
         self.get_logger().info(f"Published {num_detections} detections: {det_labels}")
+        if self.enable_ocr:
+            self.get_logger().info(f"Extracted Text Locations {len(ocr_boxes)} Extracted Text: {texts}")
 
 def main(args=None):
     rclpy.init(args=args)

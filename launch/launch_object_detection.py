@@ -31,7 +31,14 @@ def generate_launch_description():
         'detection_model',
         default_value='yolov8l.pt',
     )
-    
+    visualize_detection_arg = DeclareLaunchArgument(
+        'visualize_detection',
+        default_value='true',
+    )
+    visualize_segmentation_arg = DeclareLaunchArgument(
+        'visualize_segmentation',
+        default_value='false',
+    )
     object_detection_node = Node(
         package='turtlebot',
         executable='object_detection',
@@ -44,6 +51,8 @@ def generate_launch_description():
                 'image_type': LaunchConfiguration('image_type'),
                 'enable_ocr': LaunchConfiguration('enable_ocr'),
                 'detection_model': LaunchConfiguration('detection_model'),
+                'visualize_detection': LaunchConfiguration('visualize_detection'),
+                'visualize_segmentation': LaunchConfiguration('visualize_segmentation'),
             },
         ],
     )
@@ -66,10 +75,12 @@ def generate_launch_description():
     # Create the launch description and populate
     ld = LaunchDescription()
     ld.add_action(rate_limit_arg)
+    ld.add_action(visualize_detection_arg)
+    ld.add_action(visualize_segmentation_arg)
+    ld.add_action(detection_model_arg)
     ld.add_action(image_topic_arg)
     ld.add_action(image_type_arg)
     ld.add_action(enable_ocr_arg)
     ld.add_action(object_detection_node)
-    ld.add_action(detection_model_arg)
     ld.add_action(gps_publisher)
     return ld
