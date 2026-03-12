@@ -24,6 +24,7 @@ class YoloDetectionNode(Node):
         self.declare_parameter('visualize_detection', True)
         self.declare_parameter('visualize_segmentation', False)
         self.declare_parameter('detection_model', 'yolov8l.pt')
+        self.declare_parameter('debug', True)
 
         # Get Parameter value
         self.rate_limit = self.get_parameter('rate_limit').get_parameter_value().double_value
@@ -33,6 +34,7 @@ class YoloDetectionNode(Node):
         self.detection_model = self.get_parameter('detection_model').value
         self.visualize_detection = self.get_parameter('visualize_detection').value
         self.visualize_segmentation = self.get_parameter('visualize_segmentation').value
+        self.debug = self.get_parameter('debug').value
 
         self.get_logger().info(f"Detection Rate Limit: {self.rate_limit:.2f}")
         self.get_logger().info(f"Image Topic: {self.image_topic}")
@@ -41,6 +43,7 @@ class YoloDetectionNode(Node):
         self.get_logger().info(f"Detection Model: {self.detection_model}")
         self.get_logger().info(f"Visualize Detections: {self.visualize_detection}")
         self.get_logger().info(f"Visualize Segmentations: {self.visualize_segmentation}")
+        self.get_logger().info(f"Debug Status: {self.debug}")
 
         self.last_detection_time = time.time()
         self.detection_interval = 1.0/self.rate_limit if self.rate_limit > 0 else 0 # minimum time between detections
@@ -75,12 +78,12 @@ class YoloDetectionNode(Node):
         pkg_dir = get_package_share_directory('turtlebot')
         # Full path to model file (Within installation directory)
         self.model_path = os.path.join(pkg_dir, 'model_weights', self.detection_model)
-        self.east_model_path = os.path.join(pkg_dir, 'model_weights', 'frozen_east_text_detection.pb')
         self.model = YOLO(self.model_path)
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
         self.model.to(self.device)
         if self.enable_ocr:
-            self.text_detection_model = cv2.dnn.readNet(self.east_model_path)
+            # self.east_model_path = os.path.join(pkg_dir, 'model_weights', 'frozen_east_text_detection.pb')
+            # self.text_detection_model = cv2.dnn.readNet(self.east_model_path)
             from paddleocr import PaddleOCR # type: ignore
             self.ocr_engine = PaddleOCR(
                 # use_angle_cls=False,
@@ -91,6 +94,8 @@ class YoloDetectionNode(Node):
             )
 
         self.class_colors = self.generate_class_colors(self.model.names)
+        self.frame_count = 0
+        self.start_time = time.time()
 
     def generate_class_colors(self, class_names):
         """
@@ -128,11 +133,16 @@ class YoloDetectionNode(Node):
         self.process_image(cv_image, msg.header)
 
     def process_image(self, cv_image, header):
+        t0 = time.perf_counter()
         # Run YOLOv8 inference
-        results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
+        # results = self.model.predict(cv_image, imgsz=640, device=self.device, verbose=False)
+        results = self.model(cv_image, imgsz=640, device=self.device, verbose=False)
+
+        t1 = time.perf_counter()
         # Annotate image
         annotated_image = cv_image.copy()
         segmented_image = cv_image.copy()
+        t2 = time.perf_counter()
         if self.enable_ocr:
             ocr_result = self.ocr_engine.predict(
                 cv_image,
@@ -167,6 +177,7 @@ class YoloDetectionNode(Node):
             
         else:
             pass
+        t3 = time.perf_counter()
         # Prepare Detection2DArray message
         detections_msg = Detection2DArray()
         detections_msg.header = header
@@ -223,7 +234,7 @@ class YoloDetectionNode(Node):
                     (255, 255, 255),
                     1
                 )
-        
+        t4 = time.perf_counter()
         # Publish detections
         self.detections_pub.publish(detections_msg)
         
@@ -235,6 +246,7 @@ class YoloDetectionNode(Node):
         segmented_msg = self.bridge.cv2_to_imgmsg(segmented_image, encoding='bgr8')
         segmented_msg.header = header
         self.segmented_detections_pub.publish(segmented_msg)
+        t5 = time.perf_counter()
         # Check execution time
         if (self.detection_interval < (time.time() -self.last_detection_time)):
             # The detection process itself took a longer time than allocated detection_interval
@@ -245,9 +257,26 @@ class YoloDetectionNode(Node):
         # Log info
         num_detections = len(detections_msg.detections)
         det_labels = [self.model.names[int(d.results[0].hypothesis.class_id)] for d in detections_msg.detections]
-        self.get_logger().info(f"Published {num_detections} detections: {det_labels}")
-        if self.enable_ocr:
-            self.get_logger().info(f"Extracted Text Locations {len(ocr_boxes)} Extracted Text: {texts}")
+        if self.debug:
+            self.get_logger().info(f"Published {num_detections} detections: {det_labels}")
+            if self.enable_ocr:
+                self.get_logger().info(f"Extracted Text Locations {len(ocr_boxes)} Extracted Text: {texts}")
+            self.get_logger().info(
+            f"Timing | YOLO: {(t1-t0):.3f}s | copy: {(t2-t1):.3f}s | OCR: {(t3-t2):.3f}s | draw: {(t4-t3):.3f}s | publish: {(t5-t4):.3f}s | total: {(t5-t0):.3f}s"
+    )
+        # Increment frame count
+        self.frame_count += 1
+
+        # Compute elapsed time
+        elapsed = time.time() - self.start_time
+
+        if elapsed >= 1.0:  # log every 1 second
+            fps = self.frame_count / elapsed
+            if self.debug:
+                self.get_logger().info(f"Current FPS: {fps:.2f}")
+            # Reset counters
+            self.start_time = time.time()
+            self.frame_count = 0
 
 def main(args=None):
     rclpy.init(args=args)

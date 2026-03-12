@@ -39,6 +39,10 @@ def generate_launch_description():
         'visualize_segmentation',
         default_value='false',
     )
+    debug_arg = DeclareLaunchArgument(
+        'debug',
+        default_value='true',
+    )
     object_detection_node = Node(
         package='turtlebot',
         executable='object_detection',
@@ -53,6 +57,7 @@ def generate_launch_description():
                 'detection_model': LaunchConfiguration('detection_model'),
                 'visualize_detection': LaunchConfiguration('visualize_detection'),
                 'visualize_segmentation': LaunchConfiguration('visualize_segmentation'),
+                'debug': LaunchConfiguration('debug'),
             },
         ],
     )
@@ -81,6 +86,7 @@ def generate_launch_description():
     ld.add_action(image_topic_arg)
     ld.add_action(image_type_arg)
     ld.add_action(enable_ocr_arg)
+    ld.add_action(debug_arg)
     ld.add_action(object_detection_node)
     ld.add_action(gps_publisher)
     return ld
