@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CompressedImage
 from vision_msgs.msg import Detection2DArray, Detection2D
-from custom_interfaces.msg import IntruderAlert, IntruderDetection
+from custom_interfaces.msg import IntruderAlert, IntruderDetection # type: ignore
 from cv_bridge import CvBridge
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image as PILImage
