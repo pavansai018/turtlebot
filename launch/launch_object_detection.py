@@ -77,6 +77,53 @@ def generate_launch_description():
             '--child-frame-id', 'gps',
         ],
     )
+
+    # camera_publisher = Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='camera_tf_publisher',
+    #     arguments=[
+    #         '--x', '0.13',
+    #         '--y', '0.0',
+    #         '--z', '0.0',
+    #         '--roll', '0.0',
+    #         '--pitch', '0.0',
+    #         '--yaw', '0.0',
+    #         '--frame-id', 'base_scan',
+    #         '--child-frame-id', 'camera',
+    #     ],
+    # )
+    camera_mount_publisher = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='camera_mount_tf_publisher',
+        arguments=[
+            '--x', '0.13',
+            '--y', '0.0',
+            '--z', '0.0',
+            '--roll', '0.0',
+            '--pitch', '0.0',
+            '--yaw', '0.0',
+            '--frame-id', 'base_scan',
+            '--child-frame-id', 'camera_mount',
+        ],
+    )
+
+    camera_optical_publisher = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='camera_optical_tf_publisher',
+        arguments=[
+            '--x', '0.0',
+            '--y', '0.0',
+            '--z', '0.0',
+            '--roll', '-1.57079632679',
+            '--pitch', '0.0',
+            '--yaw', '-1.57079632679',
+            '--frame-id', 'camera_mount',
+            '--child-frame-id', 'camera',
+        ],
+    )
     # Create the launch description and populate
     ld = LaunchDescription()
     ld.add_action(rate_limit_arg)
@@ -89,4 +136,7 @@ def generate_launch_description():
     ld.add_action(debug_arg)
     ld.add_action(object_detection_node)
     ld.add_action(gps_publisher)
+    ld.add_action(camera_mount_publisher)
+    ld.add_action(camera_optical_publisher)
+    # ld.add_action(camera_publisher)
     return ld
