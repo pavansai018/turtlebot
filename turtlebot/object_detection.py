@@ -130,6 +130,9 @@ class YoloDetectionNode(Node):
         self.last_detection_time = time.time()
         # Convert ROS Image to OpenCV
         cv_image = self.bridge.compressed_imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        # if self.debug:
+        #     h, w = cv_image.shape[:2]
+        #     self.get_logger().info(f"YOLO input image size in Compressed Callback: {w}x{h}")
         self.process_image(cv_image, msg.header)
 
     def process_image(self, cv_image, header):
@@ -192,6 +195,7 @@ class YoloDetectionNode(Node):
                 
                 # Fill Detection2D message
                 detection = Detection2D()
+                detection.header = header
                 detection.bbox.center.position.x = float((x1 + x2) / 2)
                 detection.bbox.center.position.y = float((y1 + y2) / 2)
                 detection.bbox.size_x = float(x2 - x1)
@@ -264,6 +268,9 @@ class YoloDetectionNode(Node):
             self.get_logger().info(
             f"Timing | YOLO: {(t1-t0):.3f}s | copy: {(t2-t1):.3f}s | OCR: {(t3-t2):.3f}s | draw: {(t4-t3):.3f}s | publish: {(t5-t4):.3f}s | total: {(t5-t0):.3f}s"
     )
+        # if self.debug:
+        #     h, w = cv_image.shape[:2]
+        #     self.get_logger().info(f"Detection image size: {w}x{h}")
         # Increment frame count
         self.frame_count += 1
 
