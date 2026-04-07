@@ -60,6 +60,10 @@ setup(
         'console_scripts': [
             'arrow_teleop = turtlebot.arrow_teleop:main',
             'object_detection = turtlebot.object_detection:main',
+            'object_range_estimator = turtlebot.object_range_estimator:main',
+            'ore_v2 = turtlebot.object_range_estimator_v2:main',
+            'intruder_detection = turtlebot.intruder_detection:main',
+
         ],
     },
 )
